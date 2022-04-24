@@ -1,0 +1,1 @@
+#soc dependent layer for JH7110 e2.
