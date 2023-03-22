@@ -32,6 +32,7 @@ clock_freq_t sys_clock_freq(sys_clock_t clk)
     uint32_t src, div;
 
     switch (clk) {
+        case CLK_CPU_ROOT: return FPGA_CLK_CPU;
         case CLK_UART0_CORE:        return FPGA_CLK_OSC;
         case CLK_UART1_CORE:        return FPGA_CLK_OSC;
         case CLK_UART2_CORE:        return FPGA_CLK_OSC;
@@ -39,6 +40,7 @@ clock_freq_t sys_clock_freq(sys_clock_t clk)
         case CLK_UART4_CORE:        return FPGA_CLK_OSC;
         case CLK_UART5_CORE:        return FPGA_CLK_OSC;
 
+        case CLK_CAN_CLK:           return FPGA_CLK_OSC;
         case CLK_PWM_8CH_APB:       return FPGA_CLK_APB;
         case CLK_DSKIT_WDT:         return FPGA_CLK_OSC / 6;
         case CLK_SI5_TIMER_TIMER0:  return FPGA_CLK_OSC / 6;
@@ -59,7 +61,7 @@ clock_freq_t sys_clock_freq(sys_clock_t clk)
         case CLK_GPU_CLK_APB:       return 0;
         case CLK_GPU_RTC_TOGGLE:    return 0;
 
-        case CLK_OTP_AHB:           return FPGA_CLK_AHB;
+        case CLK_OTPC_CLK_APB:           return FPGA_CLK_AHB;
         case CLK_GMAC_SRC:          return sys_clock_freq(CLK_GMAC0_AXIAHB);
         case CLK_GMAC0_AXIAHB:      return FPGA_CLK_AHB;
         case CLK_GMAC0_GTXCLK:      return 0;
@@ -73,6 +75,10 @@ clock_freq_t sys_clock_freq(sys_clock_t clk)
             return FPGA_CLK_APB;
 
         case CLK_CPU_RTC_TOGGLE:    return CPU_RTC_TOGGLE_HZ;
+        case CLK_DSITX_CLK_SYS:
+            return 0; //FIXME: to be define
+        case CLK_PPI_TX_ESC:
+            return 0; //FIXME: to be define
     }
     return 0;
 }

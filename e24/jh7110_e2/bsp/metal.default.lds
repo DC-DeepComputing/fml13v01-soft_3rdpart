@@ -18,11 +18,11 @@ MEMORY
     ram (airwx) : ORIGIN = 0x50000000, LENGTH = 1024K
     ram (airwx) : ORIGIN = 0x450000000, LENGTH = 1024K
     
-        rom (irx!wa) : ORIGIN = 0x2A000000, LENGTH = 32K
-    itim (wx!rai) : ORIGIN = 0x60840000, LENGTH = 32k
+    ram (airwx) : ORIGIN = 0xc0000000, LENGTH = 10240K
+    rom (irx!wa) : ORIGIN = 0xc0a40000, LENGTH = 32K
     ******************************************************/
-    ram (airwx) : ORIGIN = 0xc0000000, LENGTH = 1024K
-    itim (wx!rai) : ORIGIN = 0xc0140000, LENGTH = 32k
+    ram (airwx) : ORIGIN = 0xc0000000, LENGTH = 20480K
+    rom (irx!wa) : ORIGIN = 0xc1500000, LENGTH = 32K
 }
 
 PHDRS
@@ -38,7 +38,7 @@ SECTIONS
 {
 	__stack_size = DEFINED(__stack_size) ? __stack_size : 8K;
 	PROVIDE(__stack_size = __stack_size);
-	__heap_size = DEFINED(__heap_size) ? __heap_size : 16K;
+	__heap_size = DEFINED(__heap_size) ? __heap_size : 32K;
 
 	PROVIDE(__metal_boot_hart = 0);
 	PROVIDE(__metal_chicken_bit = 0);
@@ -224,7 +224,7 @@ SECTIONS
 	PROVIDE( metal_segment_bss_target_end = . );
 
 
-	.stack (NOLOAD) : ALIGN(16)
+	.stack :
 	{
 		PROVIDE(metal_segment_stack_begin = .);
 		. = __stack_size;
@@ -233,12 +233,14 @@ SECTIONS
 	} >ram AT>ram :ram
 
 
-	.heap (NOLOAD) : ALIGN(4)
+	.heap :
 	{
 		PROVIDE( metal_segment_heap_target_start = . );
 		. = __heap_size;
 		PROVIDE( metal_segment_heap_target_end = . );
 		PROVIDE( _heap_end = . );
 	} >ram AT>ram :ram
+
+
 }
 

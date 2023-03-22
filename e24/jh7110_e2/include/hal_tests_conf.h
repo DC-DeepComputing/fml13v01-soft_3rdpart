@@ -14,16 +14,27 @@ extern "C" {
 #endif /* __cplusplus */
 
 //uncomment this line to enable all HAL tests
-//#define HAL_ALL_TESTS_ENABLED
+#define HAL_ALL_TESTS_ENABLED
 
 //or uncomment lines below to enable specific HAL tests
 #ifndef HAL_ALL_TESTS_ENABLED
 //#define HAL_MAILBOX_TESTS_ENABLED
 //#define HAL_INTC_TESTS_ENABLED
-//#define HAL_UART_TESTS_ENABLED
+// #define HAL_UART_TESTS_ENABLED
 //#define HAL_GPIO_TESTS_ENABLED
+#define HAL_REG_TESTS_ENABLED
+#define HAL_BENCHMARK_TESTS_ENABLED
+#endif /* HAL_ALL_TESTS_ENABLED */
+//or comment lines to DISABLE specific HAL tests
+#ifdef HAL_ALL_TESTS_ENABLED
+#define HAL_MAILBOX_TESTS_ENABLED
+#define HAL_INTC_TESTS_ENABLED
+#define HAL_UART_TESTS_ENABLED
+#define HAL_GPIO_TESTS_ENABLED
+#define HAL_REG_TESTS_ENABLED
 #endif /* HAL_ALL_TESTS_ENABLED */
 
+#define SLAVE_MAILBOX_TESTS_ENABLED
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

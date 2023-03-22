@@ -43,6 +43,7 @@ extern "C" {
 #include "bsp_hal_intc.h"
 #include "bsp_hal_uart.h"
 #include "bsp_hal_gpio.h"
+#include "bsp_hal_pmu.h"
 
 #ifdef __cplusplus
 }

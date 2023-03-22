@@ -22,7 +22,7 @@ extern "C" {
 /**
  * instance numeric consts
  */
-#define SYS_UART_NUM        1
+#define SYS_UART_NUM        6
 #define SYS_PDM_NUM         2
 #define SYS_I2S_NUM         4
 #define SYS_PWMDAC_NUM      1

@@ -20,6 +20,7 @@ CONFIGURATION ?= debug
 BSP_DIR := bsp
 HAL_DIR := hal
 DEVICES_DIR := devices
+COREMARK_DIR := src/tests/coremark
 
 #############################################################
 # BSP loading
@@ -161,6 +162,7 @@ fn_includes = $(addprefix -I,$(1))
 INCLUDE_DIRS = \
 	include \
 	src/apps \
+	src/tests \
 
 SOURCE_DIRS = \
 	src \
@@ -169,13 +171,22 @@ SOURCE_DIRS = \
 
 # for board_fpga_isp specific tests and apps
 SOURCE_DIRS += \
-	#src/board_fpga_isp/tests \
-	src/board_fpga_isp/apps
+	src/board_fpga_isp/tests \
+	src/board_fpga_isp/apps \
+	src/board_fpga_misc/tests \
+	src/board_fpga_misc/apps \
+	src/board_fpga_aic/tests \
+	src/board_fpga_aic/apps \
+	src/board_evb_v1/tests \
+	src/board_evb_v1/apps \
+	src/board_fpga_peripheral/tests \
+	src/tests/dhrystone \
 
 # dependent libs append their own INCLUDE_DIRS and SOURCE_DIRS
 sinclude $(BSP_DIR)/defs.mk
 sinclude $(HAL_DIR)/defs.mk
 sinclude $(DEVICES_DIR)/defs.mk
+sinclude $(COREMARK_DIR)/defs.mk
 
 INCLUDES = $(call fn_includes,$(INCLUDE_DIRS))
 

@@ -27,7 +27,7 @@ void e24_process_command(struct e24_dsp_cmd *resource)
 
 	for(cnt = 0;cnt < out_data_size;cnt++)
 	{
-		outbuf[cnt] = inbuf[cnt] + 3;
+		outbuf[cnt] = inbuf[cnt] + 5;
 	}
 
 	resource->flags = E24_FLAG_DONE;

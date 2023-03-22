@@ -19,8 +19,8 @@ extern "C" {
 #define DECLARE_I2C_PINMUX                      int scl,sda
 #define DEFINE_I2C_PINMUX(scl,sda)              (scl),(sda)
 
-#define DECLARE_SPI_PINMUX                      int cs,sclk,mosi,miso
-#define DEFINE_SPI_PINMUX(cs,sclk,mosi,miso)    (cs),(sclk),(mosi),(miso)
+#define DECLARE_SPI_PINMUX                      int cs_num,clk_num,tx_num,rx_num
+#define DEFINE_SPI_PINMUX(cs_num,clk_num,tx_num,rx_num)    (cs_num),(clk_num),(tx_num),(rx_num)
 
 #define DECLARE_PDM_PINMUX                      int mclk,sdin
 #define DEFINE_PDM_PINMUX(mclk,sdin)            (mclk),(sdin)
@@ -30,9 +30,10 @@ extern "C" {
 
 #define DECLARE_PWMDAC_PINMUX                    int pwml,pwmr
 #define DEFINE_PWMDAC_PINMUX(pwml,pwmr)          (pwml),(pwmr)
+#define DECLARE_TDM_PINMUX                       int tdm_tx,tdm_rx,tmd_sync,tmd_mast_clk,tmd_pcm_clk
+#define DEFINE_TDM_PINMUX(tdm_tx,tdm_rx,tmd_sync,tmd_mast_clk,tmd_pcm_clk)          (tdm_tx),(tdm_rx),(tmd_sync),(tmd_mast_clk),(tmd_pcm_clk)
 
-#define DECLARE_GMAC_BOARD_CFG                   int reset_pin,phy_addr,interface_t
-#define DEFINE_GMAC_BOARD_CFG(reset_pin,phy_addr,interface_t)    (reset_pin),(phy_addr),(interface_t)
+#define DEFINE_GMAC_BOARD_CFG(reset_pin,phy_addr,interface,speed,duplex)    {(reset_pin),(phy_addr),(interface),(speed),(duplex)}
 
 #define DECLARE_OTP_PINMUX                      int vdd2pen
 #define DEFINE_OTP_PINMUX(vdd2pen)              (vdd2pen)
@@ -56,6 +57,10 @@ extern "C" {
         #include "bsp_board_fpga_misc.h"
     #elif defined(BSP_BOARD_FPGA_AIC)
         #include "bsp_board_fpga_aic.h"
+    #elif defined(BSP_BOARD_FPGA_PERIPHERAL)
+        #include "bsp_board_fpga_peripheral.h"
+    #elif defined(BSP_BOARD_FPGA_VIDEO)
+        #include "bsp_board_fpga_video.h"
     #else
         #error select BOARD_FPGA type in bsp_conf.h.
     #endif
@@ -66,10 +71,12 @@ extern "C" {
     #else
         #error select BOARD_EVB type in bsp_conf.h.
     #endif
-#error select BOARD type in bsp_conf.h.
-#endif
+#endif /* BSP_BOARD_FPGA */
 
 int sys_board_init(void);
+//Components Initialization for board.
+//This function must be called after sys_cpu_init(),sys_board_init(),sys_init_clocks(),sys_gpio_init(),sys_console_init().
+int sys_board_components_init(void);
 
 #ifdef __cplusplus
 }

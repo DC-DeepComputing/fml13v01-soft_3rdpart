@@ -23,35 +23,39 @@ typedef enum
     CLK_CPU_ROOT,
     CLK_CPU_CORE,
     CLK_CPU_BUS,
-    CLK_VCDEC_ROOT,
+    CLK_DDR_ROOT,
+    CLK_VENC_ROOT,
+    CLK_VDEC_ROOT,
     CLK_GPU_ROOT,
-    CLK_DSP_ROOT,
     CLK_VOUT_ROOT,
-    CLK_BUS_ROOT,
-    CLK_GMACUSB_ROOT,
-    CLK_PLL0DIV_PERH,
     CLK_PERH_ROOT,
-    CLK_STGM1_BUS,
+    CLK_GMACUSB_ROOT,
+    CLK_BUS_ROOT,
+    CLK_NOCSTG_BUS,
     CLK_AXI_CFG0,
     CLK_STG_AXIAHB,
     CLK_AHB0,
     CLK_AHB1,
+    CLK_APB_BUS_FUNC,
+    CLK_U2_PCLK_MUX_FUNC_PCLK,
     CLK_APB_BUS,
     CLK_APB0,
     CLK_APB12,
-    CLK_PLL0DIV_MCLK,
+    CLK_PLL0_DIV2,
+    CLK_PLL1_DIV2,
+    CLK_PLL2_DIV2,
+    CLK_AUDIO_ROOT,
     CLK_MCLK_INNER,
     CLK_MCLK,
     CLK_MCLK_OUT,       //gpio out
     CLK_ISP_2X,
+    CLK_ISP_AXI,
     CLK_AXI_CFG1,
-    CLK_PLL1_DIV2_GCLK,
-    CLK_PLL2_DIV2,
     CLK_GCLK0,          //gpio out
     CLK_GCLK1,          //gpio out
     CLK_GCLK2,          //gpio out
 
-    CLK_CPU_RTC_TOGGLE,
+    CLK_CPU_RTC_TOGGLE, //U7MC.rtc_toggle
 
     CLK_UART0_CORE,
     CLK_UART1_CORE,
@@ -59,6 +63,10 @@ typedef enum
     CLK_UART3_CORE,
     CLK_UART4_CORE,
     CLK_UART5_CORE,
+
+    CLK_CAN_CLK,
+    CLK_CAN0_CLK,
+    CLK_CAN1_CLK,
 
     CLK_PWM_8CH_APB,
     CLK_DSKIT_WDT,
@@ -80,7 +88,11 @@ typedef enum
     CLK_GPU_CLK_APB,
     CLK_GPU_RTC_TOGGLE,
 
-    CLK_OTP_AHB,
+    CLK_OSC_DIV4,
+    CLK_AON_APB_FUNC,
+    CLK_U1_PCLK_MUX_PCLK,
+    CLK_AON_APB,
+    CLK_OTPC_CLK_APB,
     CLK_GMAC_SRC,
     CLK_GMAC0_AXIAHB,
     CLK_GMAC0_GTXCLK,
@@ -95,6 +107,22 @@ typedef enum
     CLK_I2C4_CORE,
     CLK_I2C5_CORE,
     CLK_I2C6_CORE,
+
+    CLK_VOUT_SRC,
+    CLK_VOUT_AXI,
+    CLK_DISP_ROOT,
+    CLK_DSI_SYS,
+    CLK_DSITX_CLK_SYS,
+    CLK_PPI_TX_ESC,
+
+    CLK_MIPIPHY_REF,
+    CLK_HDMIPHY_REF,
+	CLK_SPDIF,
+
+    CLK_PWMDAC_CORE,
+    CLK_PDM_CORE,
+    CLK_TDM_CORE,
+
     //add new clocks here, check clkrst_asic table
 
     CLK_NUM,

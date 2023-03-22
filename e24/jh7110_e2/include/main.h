@@ -14,5 +14,7 @@
 #include "sfive_cli.h"
 #include "hal_tests_include.h"
 
+int run_hal_tests(void);
+
 #endif /* __MAIN_H_ */
 

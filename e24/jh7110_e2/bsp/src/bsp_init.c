@@ -14,7 +14,7 @@ void sys_init(void)
     sys_cpu_init();
     sys_board_init();
     sys_init_clocks();
-    //sys_gpio_init();
+    sys_gpio_init();
     //sys_console_init();
 
     //print version banner with commit id, good for debug

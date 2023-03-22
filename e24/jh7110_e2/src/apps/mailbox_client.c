@@ -37,21 +37,18 @@ static void on_message_handler(mailbox_peer_t peer, uint32_t data)
 
 void mailbox_client_loop(void)
 {
-
     mailbox_initcfg_t initcfg = {
         .self = MAILBOX_CORE_E2,
         .role = MAILBOX_CLIENT,
         .cb   = on_message_handler,
     };
-
     mailbox_handle_t *mbx = mailbox_open(0, &initcfg);
     SYS_ASSERT(mbx != NULL);
     g_mbx = mbx;
-    int  *p = (int *)0xc0110000;
+    int  *p = (int *)0xc1410000;
     *p=0x104;
     while (1) {
-        //sys_udelay(10);
-        sys_wait();
+        sys_udelay(100);
     }
 
     // shall never reach here

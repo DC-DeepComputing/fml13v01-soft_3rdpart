@@ -33,7 +33,7 @@ int main(void)
 #ifdef COM_POLL
     poll_client_loop();
 #else
-#ifndef HAL_ALL_TESTS_ENABLED
+#ifdef SLAVE_MAILBOX_TESTS_ENABLED
     mailbox_client_loop();
 #else
     cli_init(input);

@@ -124,6 +124,7 @@ void u0_p2p_async_disable(void){
 
 
 void u0_cdns_dsiTx_enable(void){
+#if 0
   //clk_u0_cdns_dsiTx_clk_sys:['clk_u0_cdns_dsiTx_clk_sys', 'clk_u0_cdns_dsiTx_clk_sys_icg', 'clk_dsi_sys', 'clk_dsi_sys_div', 'clk_disp_root', 'clk_dom_vout_top_clk_vout_src'],dst:['u0_cdns_dsiTx.dsi_sys_clk']
   //default:_DIVIDE_CLOCK_CLK_DSI_SYS_(4);
   _ENABLE_CLOCK_CLK_U0_CDNS_DSITX_CLK_SYS_;
@@ -138,11 +139,12 @@ void u0_cdns_dsiTx_enable(void){
   //default:_SWITCH_CLOCK_CLK_U0_CDNS_DSITX_CLK_DPI_SOURCE_CLK_DC8200_PIX0_;
   //default:_DIVIDE_CLOCK_CLK_DC8200_PIX0_(4);
   _ENABLE_CLOCK_CLK_U0_CDNS_DSITX_CLK_DPI_;
+#endif
 
   //rstn_u0_cdns_dsiTx_rstn_sys:['rstn_u0_cdns_dsiTx_rstn_sys'],dst:['u0_cdns_dsiTx.dsi_sys_rst_n']
   _CLEAR_RESET_RSTGEN_RSTN_U0_CDNS_DSITX_RSTN_SYS_;
   //rstn_u0_cdns_dsiTx_rstn_txbytehs:['rstn_u0_cdns_dsiTx_rstn_txbytehs'],dst:['u0_cdns_dsiTx.dsi_tx_byte_hs_rst_n']
-  _CLEAR_RESET_RSTGEN_RSTN_U0_CDNS_DSITX_RSTN_TXBYTEHS_;
+  //_CLEAR_RESET_RSTGEN_RSTN_U0_CDNS_DSITX_RSTN_TXBYTEHS_; //commentted by larry
   //rstn_u0_cdns_dsiTx_rstn_apb:['rstn_u0_cdns_dsiTx_rstn_apb'],dst:['u0_cdns_dsiTx.dsi_p_rst_n']
   _CLEAR_RESET_RSTGEN_RSTN_U0_CDNS_DSITX_RSTN_APB_;
   //rstn_u0_cdns_dsiTx_rstn_txesc:['rstn_u0_cdns_dsiTx_rstn_txesc'],dst:['u0_cdns_dsiTx.dsi_tx_esc_rst_n']
