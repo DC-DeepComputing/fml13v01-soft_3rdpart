@@ -45,7 +45,7 @@ void mailbox_client_loop(void)
     mailbox_handle_t *mbx = mailbox_open(0, &initcfg);
     SYS_ASSERT(mbx != NULL);
     g_mbx = mbx;
-    int  *p = (int *)0xc1410000;
+    int  *p = (int *)0x6e210000;
     *p=0x104;
     while (1) {
         sys_udelay(100);

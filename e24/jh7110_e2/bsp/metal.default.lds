@@ -21,8 +21,8 @@ MEMORY
     ram (airwx) : ORIGIN = 0xc0000000, LENGTH = 10240K
     rom (irx!wa) : ORIGIN = 0xc0a40000, LENGTH = 32K
     ******************************************************/
-    ram (airwx) : ORIGIN = 0xc0000000, LENGTH = 20480K
-    rom (irx!wa) : ORIGIN = 0xc1500000, LENGTH = 32K
+    ram (airwx) : ORIGIN = 0x6CE00000, LENGTH = 20480K
+    rom (irx!wa) : ORIGIN = 0x6E300000, LENGTH = 32K
 }
 
 PHDRS
