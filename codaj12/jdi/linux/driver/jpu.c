@@ -37,11 +37,12 @@
 #include <linux/sched/signal.h>
 #include <linux/reset.h>
 #include <linux/version.h>
+#include <linux/vmalloc.h>
 
 #include "../../../jpuapi/jpuconfig.h"
 #include "jpu.h"
 
-extern void sifive_ccache_flush_range(phys_addr_t start, size_t len);
+extern void sifive_l2_flush64_range(phys_addr_t start, size_t len);
 extern void sifive_ccache_flush_entire(void);
 
 //#define ENABLE_DEBUG_MSG
@@ -204,7 +205,7 @@ static void starfive_flush_dcache(phys_addr_t start, size_t len)
 	if (len >= 0x80000)
                 sifive_ccache_flush_entire();
         else
-		sifive_ccache_flush_range(start, len);
+		sifive_l2_flush64_range(start, len);
 #endif
 }
 
