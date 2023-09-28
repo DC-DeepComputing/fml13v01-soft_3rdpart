@@ -235,8 +235,10 @@ static wait_queue_head_t s_interrupt_wait_q;
 static spinlock_t s_vpu_lock = __SPIN_LOCK_UNLOCKED(s_vpu_lock);
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36)
 static DECLARE_MUTEX(s_vpu_sem);
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(6,4,0)
 static DEFINE_SEMAPHORE(s_vpu_sem);
+#else
+static DEFINE_SEMAPHORE(s_vpu_sem, 1);
 #endif
 static struct list_head s_vbp_head = LIST_HEAD_INIT(s_vbp_head);
 static struct list_head s_inst_list_head = LIST_HEAD_INIT(s_inst_list_head);
@@ -997,7 +999,11 @@ static int vpu_map_to_register(struct file *fp, struct vm_area_struct *vm)
 {
 	unsigned long pfn;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
 	vm->vm_flags |= VM_IO | VM_RESERVED;
+#else
+	vm_flags_set(vm, VM_IO | VM_RESERVED);
+#endif
 	vm->vm_page_prot = pgprot_noncached(vm->vm_page_prot);
 	pfn = s_vpu_register.phys_addr >> PAGE_SHIFT;
 
@@ -1006,7 +1012,11 @@ static int vpu_map_to_register(struct file *fp, struct vm_area_struct *vm)
 
 static int vpu_map_to_physical_memory(struct file *fp, struct vm_area_struct *vm)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
 	vm->vm_flags |= VM_IO | VM_RESERVED;
+#else
+	vm_flags_set(vm, VM_IO | VM_RESERVED);
+#endif
 	vm->vm_page_prot = pgprot_noncached(vm->vm_page_prot);
 
 	return remap_pfn_range(vm, vm->vm_start, vm->vm_pgoff, vm->vm_end-vm->vm_start, vm->vm_page_prot) ? -EAGAIN : 0;
@@ -1021,7 +1031,11 @@ static int vpu_map_to_instance_pool_memory(struct file *fp, struct vm_area_struc
 	char *vmalloc_area_ptr = (char *)s_instance_pool.base;  
 	unsigned long pfn;  
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
 	vm->vm_flags |= VM_RESERVED;
+#else
+	vm_flags_set(vm, VM_RESERVED);
+#endif
 
 	/* loop over all pages, map it page individually */  
 	while (length > 0) 
@@ -1038,7 +1052,11 @@ static int vpu_map_to_instance_pool_memory(struct file *fp, struct vm_area_struc
 
 	return 0;
 #else
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
 	vm->vm_flags |= VM_RESERVED;
+#else
+	vm_flags_set(vm, VM_RESERVED);
+#endif
 	return remap_pfn_range(vm, vm->vm_start, vm->vm_pgoff, vm->vm_end-vm->vm_start, vm->vm_page_prot) ? -EAGAIN : 0;
 #endif
 }
@@ -1128,7 +1146,11 @@ static int vpu_probe(struct platform_device *pdev)
 		goto ERROR_PROVE_DEVICE;
 	}
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,4,0)
 	s_vpu_class = class_create(THIS_MODULE, VPU_DEV_NAME);
+#else
+	s_vpu_class = class_create(VPU_DEV_NAME);
+#endif
 	if (IS_ERR(s_vpu_class)) {
 	    dev_err(vpu_dev, "class creat error.\n");
 	    goto ERROR_CRART_CLASS;
