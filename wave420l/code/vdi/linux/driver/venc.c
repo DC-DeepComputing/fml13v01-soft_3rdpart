@@ -32,6 +32,7 @@
 #include <linux/sched.h>
 #include <linux/reset.h>
 #include <linux/version.h>
+#include <linux/vmalloc.h>
 #include <linux/of.h>
 #include <linux/pm_runtime.h>
 
@@ -39,7 +40,7 @@
 
 #include "vpu.h"
 
-extern void sifive_ccache_flush_range(phys_addr_t start, size_t len);
+extern void sifive_l2_flush64_range(phys_addr_t start, size_t len);
 extern void sifive_ccache_flush_entire(void);
 
 #ifndef  CONFIG_PM
@@ -362,7 +363,7 @@ static void starfive_flush_dcache(phys_addr_t start, size_t len)
 	if (len >= 0x80000)
 		sifive_ccache_flush_entire();
 	else
-		sifive_ccache_flush_range(start, len);
+		sifive_l2_flush64_range(start, len);
 #endif
 }
 
