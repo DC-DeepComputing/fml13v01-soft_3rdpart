@@ -183,8 +183,10 @@ static wait_queue_head_t s_interrupt_wait_q[MAX_NUM_INSTANCE];
 static spinlock_t s_jpu_lock = __SPIN_LOCK_UNLOCKED(s_jpu_lock);
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36)
 static DECLARE_MUTEX(s_jpu_sem);
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(6,4,0)
 static DEFINE_SEMAPHORE(s_jpu_sem);
+#else
+static DEFINE_SEMAPHORE(s_jpu_sem, 1);
 #endif
 static struct list_head s_jbp_head = LIST_HEAD_INIT(s_jbp_head);
 static struct list_head s_inst_list_head = LIST_HEAD_INIT(s_inst_list_head);
@@ -783,7 +785,11 @@ static int jpu_map_to_register(struct file *fp, struct vm_area_struct *vm)
 {
     unsigned long pfn;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
     vm->vm_flags |= VM_IO | VM_RESERVED;
+#else
+    vm_flags_set(vm, VM_IO | VM_RESERVED);
+#endif
     vm->vm_page_prot = pgprot_noncached(vm->vm_page_prot);
     pfn = s_jpu_register.phys_addr >> PAGE_SHIFT;
 
@@ -792,7 +798,11 @@ static int jpu_map_to_register(struct file *fp, struct vm_area_struct *vm)
 
 static int jpu_map_to_physical_memory(struct file *fp, struct vm_area_struct *vm)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
     vm->vm_flags |= VM_IO | VM_RESERVED;
+#else
+    vm_flags_set(vm, VM_IO | VM_RESERVED);
+#endif
     vm->vm_page_prot = pgprot_noncached(vm->vm_page_prot);
 
     return remap_pfn_range(vm, vm->vm_start, vm->vm_pgoff, vm->vm_end-vm->vm_start, vm->vm_page_prot) ? -EAGAIN : 0;
@@ -806,7 +816,11 @@ static int jpu_map_to_instance_pool_memory(struct file *fp, struct vm_area_struc
     char *vmalloc_area_ptr = (char *)s_instance_pool.base;
     unsigned long pfn;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
     vm->vm_flags |= VM_RESERVED;
+#else
+    vm_flags_set(vm, VM_RESERVED);
+#endif
 
     /* loop over all pages, map it page individually */
     while (length > 0) {
@@ -900,7 +914,11 @@ static int jpu_probe(struct platform_device *pdev)
         goto ERROR_PROVE_DEVICE;
     }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,4,0)
     s_jpu_class = class_create(THIS_MODULE, JPU_DEV_NAME);
+#else
+    s_jpu_class = class_create(JPU_DEV_NAME);
+#endif
     if (IS_ERR(s_jpu_class)) {
 	dev_err(jpu_dev, "class creat error.\n");
 	goto ERROR_CRART_CLASS;
