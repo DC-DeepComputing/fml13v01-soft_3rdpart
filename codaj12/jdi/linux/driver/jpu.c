@@ -121,13 +121,6 @@ typedef struct jpu_clkgen_t {
 } jpu_clkgen_t;
 #endif
 
-struct clk_bulk_data jpu_clks[] = {
-		{ .id = "axi_clk" },
-		{ .id = "core_clk" },
-		{ .id = "apb_clk" },
-		{ .id = "noc_bus" },
-};
-
 typedef struct jpu_clk_t {
 #ifndef STARFIVE_JPU_SUPPORT_CLOCK_CONTROL
 	void __iomem *clkgen;
@@ -1397,18 +1390,21 @@ static int jpu_of_clk_get(struct platform_device *pdev, jpu_clk_t *jpu_clk)
 	int ret;
 
 	jpu_clk->dev = dev;
-	jpu_clk->clks = jpu_clks;
-	jpu_clk->nr_clks = ARRAY_SIZE(jpu_clks);
 
 	jpu_clk->resets = devm_reset_control_array_get_shared(dev);
 	if (IS_ERR(jpu_clk->resets)) {
-		ret = PTR_ERR(jpu_clk->resets);
 		dev_err(dev, "faied to get jpu reset controls\n");
+		return PTR_ERR(jpu_clk->resets);
 	}
 
-	ret = devm_clk_bulk_get(dev, jpu_clk->nr_clks, jpu_clk->clks);
-	if (ret)
+	ret = devm_clk_bulk_get_all(dev, &jpu_clk->clks);
+
+	if (ret < 0) {
 		dev_err(dev, "faied to get jpu clk controls\n");
+		return PTR_ERR(jpu_clk->clks);
+	}
+
+	jpu_clk->nr_clks = ret;
 
 	return 0;
 }
