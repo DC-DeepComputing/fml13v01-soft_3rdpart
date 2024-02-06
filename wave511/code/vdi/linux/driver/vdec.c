@@ -147,13 +147,6 @@ typedef struct vpu_clkgen_t {
 } vpu_clkgen_t;
 #endif
 
-struct clk_bulk_data vpu_clks[] = {
-		{ .id = "apb_clk" },
-		{ .id = "axi_clk" },
-		{ .id = "bpu_clk" },
-		{ .id = "vce_clk" },
-		{ .id = "noc_bus" },
-};
 typedef struct vpu_clk_t {
 #ifndef STARFIVE_VPU_SUPPORT_CLOCK_CONTROL
 	void __iomem *clkgen;
@@ -2383,18 +2376,21 @@ static int vpu_of_clk_get(struct platform_device *pdev, vpu_clk_t *vpu_clk)
 	int ret;
 
 	vpu_clk->dev = dev;
-	vpu_clk->clks = vpu_clks;
-	vpu_clk->nr_clks = ARRAY_SIZE(vpu_clks);
 
 	vpu_clk->resets = devm_reset_control_array_get_shared(dev);
 	if (IS_ERR(vpu_clk->resets)) {
-		ret = PTR_ERR(vpu_clk->resets);
 		dev_err(dev, "faied to get vpu reset controls\n");
+		return PTR_ERR(vpu_clk->resets);
 	}
 
-	ret = devm_clk_bulk_get(dev, vpu_clk->nr_clks, vpu_clk->clks);
-	if (ret)
+	ret = devm_clk_bulk_get_all(dev, &vpu_clk->clks);
+
+	if (ret < 0) {
 		dev_err(dev, "faied to get vpu clk controls\n");
+		return PTR_ERR(vpu_clk->clks);
+	}
+
+	vpu_clk->nr_clks = ret;
 
 	if (device_property_read_bool(dev, "starfive,vdec_noc_ctrl"))
 		vpu_clk->noc_ctrl = true;
