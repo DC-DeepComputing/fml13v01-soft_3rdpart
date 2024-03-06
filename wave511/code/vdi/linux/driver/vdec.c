@@ -147,13 +147,6 @@ typedef struct vpu_clkgen_t {
 } vpu_clkgen_t;
 #endif
 
-struct clk_bulk_data vpu_clks[] = {
-		{ .id = "apb_clk" },
-		{ .id = "axi_clk" },
-		{ .id = "bpu_clk" },
-		{ .id = "vce_clk" },
-		{ .id = "noc_bus" },
-};
 typedef struct vpu_clk_t {
 #ifndef STARFIVE_VPU_SUPPORT_CLOCK_CONTROL
 	void __iomem *clkgen;
@@ -222,8 +215,10 @@ static wait_queue_head_t s_interrupt_wait_q;
 static spinlock_t s_vpu_lock = __SPIN_LOCK_UNLOCKED(s_vpu_lock);
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36)
 static DECLARE_MUTEX(s_vpu_sem);
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(6,4,0)
 static DEFINE_SEMAPHORE(s_vpu_sem);
+#else
+static DEFINE_SEMAPHORE(s_vpu_sem, 1);
 #endif
 static struct list_head s_vbp_head = LIST_HEAD_INIT(s_vbp_head);
 static struct list_head s_inst_list_head = LIST_HEAD_INIT(s_inst_list_head);
@@ -1472,7 +1467,11 @@ static int vpu_map_to_register(struct file *fp, struct vm_area_struct *vm)
 {
     unsigned long pfn;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
     vm->vm_flags |= VM_IO | VM_RESERVED;
+#else
+    vm_flags_set(vm, VM_IO | VM_RESERVED);
+#endif
     vm->vm_page_prot = pgprot_noncached(vm->vm_page_prot);
     pfn = s_vpu_register.phys_addr >> PAGE_SHIFT;
 
@@ -1481,7 +1480,11 @@ static int vpu_map_to_register(struct file *fp, struct vm_area_struct *vm)
 
 static int vpu_map_to_physical_memory(struct file *fp, struct vm_area_struct *vm)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
     vm->vm_flags |= VM_IO | VM_RESERVED;
+#else
+    vm_flags_set(vm, VM_IO | VM_RESERVED);
+#endif
     vm->vm_page_prot = pgprot_noncached(vm->vm_page_prot);
 
     return remap_pfn_range(vm, vm->vm_start, vm->vm_pgoff, vm->vm_end-vm->vm_start, vm->vm_page_prot) ? -EAGAIN : 0;
@@ -1496,7 +1499,11 @@ static int vpu_map_to_instance_pool_memory(struct file *fp, struct vm_area_struc
     char *vmalloc_area_ptr = (char *)s_instance_pool.base;
     unsigned long pfn;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
     vm->vm_flags |= VM_RESERVED;
+#else
+    vm_flags_set(vm, VM_RESERVED);
+#endif
 
     /* loop over all pages, map it page individually */
     while (length > 0)
@@ -1512,7 +1519,11 @@ static int vpu_map_to_instance_pool_memory(struct file *fp, struct vm_area_struc
 
     return 0;
 #else
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
     vm->vm_flags |= VM_RESERVED;
+#else
+    vm_flags_set(vm, VM_RESERVED);
+#endif
     return remap_pfn_range(vm, vm->vm_start, vm->vm_pgoff, vm->vm_end-vm->vm_start, vm->vm_page_prot) ? -EAGAIN : 0;
 #endif
 }
@@ -1604,7 +1615,11 @@ static int vpu_probe(struct platform_device *pdev)
         goto ERROR_PROVE_DEVICE;
     }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,4,0)
     s_vpu_class = class_create(THIS_MODULE, VPU_DEV_NAME);
+#else
+    s_vpu_class = class_create(VPU_DEV_NAME);
+#endif
     if (IS_ERR(s_vpu_class)) {
 	dev_err(vpu_dev, "class creat error.\n");
 	goto ERROR_CRART_CLASS;
@@ -2361,18 +2376,21 @@ static int vpu_of_clk_get(struct platform_device *pdev, vpu_clk_t *vpu_clk)
 	int ret;
 
 	vpu_clk->dev = dev;
-	vpu_clk->clks = vpu_clks;
-	vpu_clk->nr_clks = ARRAY_SIZE(vpu_clks);
 
 	vpu_clk->resets = devm_reset_control_array_get_shared(dev);
 	if (IS_ERR(vpu_clk->resets)) {
-		ret = PTR_ERR(vpu_clk->resets);
 		dev_err(dev, "faied to get vpu reset controls\n");
+		return PTR_ERR(vpu_clk->resets);
 	}
 
-	ret = devm_clk_bulk_get(dev, vpu_clk->nr_clks, vpu_clk->clks);
-	if (ret)
+	ret = devm_clk_bulk_get_all(dev, &vpu_clk->clks);
+
+	if (ret < 0) {
 		dev_err(dev, "faied to get vpu clk controls\n");
+		return PTR_ERR(vpu_clk->clks);
+	}
+
+	vpu_clk->nr_clks = ret;
 
 	if (device_property_read_bool(dev, "starfive,vdec_noc_ctrl"))
 		vpu_clk->noc_ctrl = true;

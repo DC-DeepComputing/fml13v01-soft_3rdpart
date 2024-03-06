@@ -121,13 +121,6 @@ typedef struct jpu_clkgen_t {
 } jpu_clkgen_t;
 #endif
 
-struct clk_bulk_data jpu_clks[] = {
-		{ .id = "axi_clk" },
-		{ .id = "core_clk" },
-		{ .id = "apb_clk" },
-		{ .id = "noc_bus" },
-};
-
 typedef struct jpu_clk_t {
 #ifndef STARFIVE_JPU_SUPPORT_CLOCK_CONTROL
 	void __iomem *clkgen;
@@ -183,8 +176,10 @@ static wait_queue_head_t s_interrupt_wait_q[MAX_NUM_INSTANCE];
 static spinlock_t s_jpu_lock = __SPIN_LOCK_UNLOCKED(s_jpu_lock);
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,36)
 static DECLARE_MUTEX(s_jpu_sem);
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(6,4,0)
 static DEFINE_SEMAPHORE(s_jpu_sem);
+#else
+static DEFINE_SEMAPHORE(s_jpu_sem, 1);
 #endif
 static struct list_head s_jbp_head = LIST_HEAD_INIT(s_jbp_head);
 static struct list_head s_inst_list_head = LIST_HEAD_INIT(s_inst_list_head);
@@ -783,7 +778,11 @@ static int jpu_map_to_register(struct file *fp, struct vm_area_struct *vm)
 {
     unsigned long pfn;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
     vm->vm_flags |= VM_IO | VM_RESERVED;
+#else
+    vm_flags_set(vm, VM_IO | VM_RESERVED);
+#endif
     vm->vm_page_prot = pgprot_noncached(vm->vm_page_prot);
     pfn = s_jpu_register.phys_addr >> PAGE_SHIFT;
 
@@ -792,7 +791,11 @@ static int jpu_map_to_register(struct file *fp, struct vm_area_struct *vm)
 
 static int jpu_map_to_physical_memory(struct file *fp, struct vm_area_struct *vm)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
     vm->vm_flags |= VM_IO | VM_RESERVED;
+#else
+    vm_flags_set(vm, VM_IO | VM_RESERVED);
+#endif
     vm->vm_page_prot = pgprot_noncached(vm->vm_page_prot);
 
     return remap_pfn_range(vm, vm->vm_start, vm->vm_pgoff, vm->vm_end-vm->vm_start, vm->vm_page_prot) ? -EAGAIN : 0;
@@ -806,7 +809,11 @@ static int jpu_map_to_instance_pool_memory(struct file *fp, struct vm_area_struc
     char *vmalloc_area_ptr = (char *)s_instance_pool.base;
     unsigned long pfn;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,3,0)
     vm->vm_flags |= VM_RESERVED;
+#else
+    vm_flags_set(vm, VM_RESERVED);
+#endif
 
     /* loop over all pages, map it page individually */
     while (length > 0) {
@@ -900,7 +907,11 @@ static int jpu_probe(struct platform_device *pdev)
         goto ERROR_PROVE_DEVICE;
     }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,4,0)
     s_jpu_class = class_create(THIS_MODULE, JPU_DEV_NAME);
+#else
+    s_jpu_class = class_create(JPU_DEV_NAME);
+#endif
     if (IS_ERR(s_jpu_class)) {
 	dev_err(jpu_dev, "class creat error.\n");
 	goto ERROR_CRART_CLASS;
@@ -1379,18 +1390,21 @@ static int jpu_of_clk_get(struct platform_device *pdev, jpu_clk_t *jpu_clk)
 	int ret;
 
 	jpu_clk->dev = dev;
-	jpu_clk->clks = jpu_clks;
-	jpu_clk->nr_clks = ARRAY_SIZE(jpu_clks);
 
 	jpu_clk->resets = devm_reset_control_array_get_shared(dev);
 	if (IS_ERR(jpu_clk->resets)) {
-		ret = PTR_ERR(jpu_clk->resets);
 		dev_err(dev, "faied to get jpu reset controls\n");
+		return PTR_ERR(jpu_clk->resets);
 	}
 
-	ret = devm_clk_bulk_get(dev, jpu_clk->nr_clks, jpu_clk->clks);
-	if (ret)
+	ret = devm_clk_bulk_get_all(dev, &jpu_clk->clks);
+
+	if (ret < 0) {
 		dev_err(dev, "faied to get jpu clk controls\n");
+		return PTR_ERR(jpu_clk->clks);
+	}
+
+	jpu_clk->nr_clks = ret;
 
 	return 0;
 }
