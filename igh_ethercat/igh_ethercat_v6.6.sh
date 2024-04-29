@@ -127,16 +127,18 @@ else
 fi
 
 # Iterate through patches starting with "0001*" to "0003*" in the ethercat_patches directory
-for patch_file in /path/to/ethercat_patches/000*; do
-    if [[ "$patch_file" =~ /000[1-3][0-9]*-.* ]]; then
-        # check if the pach is applied
-        if git apply --check "$patch_file" &>/dev/null; then
-            echo "Patch already applied: $patch_file"
-        else
-            echo "Applying patch: $patch_file"
-            git apply "$patch_file"
-        fi
-    fi
+echo "Applying patches."
+for patch_file in ../ethercat_patch/000*; do
+  if [[ "$patch_file" =~ /000[1-3][0-9]*-.*\.patch ]]; then
+    # Applying patches by using 'git am', and ignore the possible conflicts
+    git am --3way --ignore-whitespace "$patch_file" || {
+      # 如果 git am 失败（例如，由于冲突），则输出错误信息并跳过该补丁 Output error messages and 
+      echo "Failed to apply patch: $patch_file"
+      git am --abort # 清理 git am 的状态
+      continue       # 跳过当前循环迭代，继续下一个补丁文件
+    }
+    echo "Patch applied: $patch_file"
+  fi
 done
 
 cd ../
@@ -216,7 +218,7 @@ cp start_ethercat_master.sh ${buildroot_initramfs_sysroot_path}/root
 
 if [ $sdcard_img -eq 1 ]; then
   echo "Copy script to '${buildroot_rootfs_path}/target/root'."
-  cp start_ethercat_master.sh ${buildroot_rootfs_path}/target/root
+  cp start_ethercat_master_v6.6.sh ${buildroot_rootfs_path}/target/root
 
   if [ $? -eq 0 ]; then
     echo "Copy script to '${buildroot_rootfs_path}/target/root' success."
