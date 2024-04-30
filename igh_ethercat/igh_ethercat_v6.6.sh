@@ -132,10 +132,12 @@ for patch_file in ../ethercat_patch/000*; do
   if [[ "$patch_file" =~ /000[1-3][0-9]*-.*\.patch ]]; then
     # Applying patches by using 'git am', and ignore the possible conflicts
     git am --3way --ignore-whitespace "$patch_file" || {
-      # 如果 git am 失败（例如，由于冲突），则输出错误信息并跳过该补丁 Output error messages and 
+      # if 'git am' fails, output error messages and skip this patch.
       echo "Failed to apply patch: $patch_file"
-      git am --abort # 清理 git am 的状态
-      continue       # 跳过当前循环迭代，继续下一个补丁文件
+      # clean 'git am' status.
+      git am --abort 
+      # Skip the current loop iteration and continue with the next patch file.
+      continue       
     }
     echo "Patch applied: $patch_file"
   fi
@@ -158,7 +160,7 @@ CXX=${toolchains_path}/riscv64-buildroot-linux-gnu-g++
 echo ""
 echo "--------------------make--------------------"
 
-make
+make -j$(nproc)
 
 echo ""
 echo "--------------------make modules--------------------"
@@ -171,14 +173,33 @@ echo "--------------------make install--------------------"
 make DESTDIR=${buildroot_initramfs_sysroot_path} install
 
 echo ""
-echo "--------------------make modules_install--------------------"
+echo "--------------------copy module files--------------------"
+
+ethercat_file_path=${current_path}/ethercat_files
+mkdir ${ethercat_file_path}
 
 kernel_release=$(cat ${kernel_release_file})
 
 if [ -d "${buildroot_initramfs_sysroot_path}/lib/modules/${kernel_release}" ]; then
   echo "The directory exists. Proceeding with make modules_install..."
-  make INSTALL_MOD_PATH=${install_mod_path} modules_install
-  echo "modules has been installed in the ${install_mod_path}/lib/modules/${kernel_release}"
+  # make INSTALL_MOD_PATH=${install_mod_path} modules_install
+  make INSTALL_MOD_PATH=${ethercat_file_path} modules_install
+  cp -r ${ethercat_file_path}/lib/modules/${kernel_release}/ethercat ${buildroot_initramfs_sysroot_path}/root
+  echo "modules has been copied to ${buildroot_initramfs_sysroot_path}/root"
+
+  if [ $sdcard_img -eq 1 ]; then
+    echo "Copy application to '${buildroot_rootfs_path}/target/root'."
+    cp -r ${ethercat_file_path}/lib/modules/${kernel_release}/ethercat ${buildroot_rootfs_path}/target/root
+
+    if [ $? -eq 0 ]; then
+      echo "Copy modules to '${buildroot_rootfs_path}/target/root' success."
+    else
+      echo "Copy modules to '${buildroot_rootfs_path}/target/root' fail."
+      cd ${current_path}
+      exit 1
+    fi
+  fi
+
 else
   echo "The directory does not exist. Please check the path."
   cd ${current_path}
@@ -214,7 +235,7 @@ echo "==============================Copying 'start_ethercat_master.sh'==========
 
 chmod +x start_ethercat_master_v6.6.sh
 
-cp start_ethercat_master.sh ${buildroot_initramfs_sysroot_path}/root
+cp start_ethercat_master_v6.6.sh ${buildroot_initramfs_sysroot_path}/root
 
 if [ $sdcard_img -eq 1 ]; then
   echo "Copy script to '${buildroot_rootfs_path}/target/root'."

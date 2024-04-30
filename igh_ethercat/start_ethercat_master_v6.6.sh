@@ -8,13 +8,11 @@ fi
 mac_address="$1"
 
 modprobe phylink
-insmod /lib/modules/$(uname -r)/ethercat/master/ec_master.ko main_devices="${mac_address}"
-insmod /lib/modules/$(uname -r)/ethercat/devices/ec_generic.ko
+insmod ethercat/master/ec_master.ko main_devices="${mac_address}"
+insmod ethercat/devices/ec_generic.ko
 modprobe pcs_xpcs
 
-cd /lib/modules/$(uname -r)/kernel/drivers/net/ethernet/stmicro/stmmac/
-insmod stmmac.ko
-insmod stmmac-platform.ko
-insmod dwmac-starfive-plat.ko
+insmod ethercat/devices/dwc/ec_dwc.ko
+insmod ethercat/devices/dwc/ec_dwc_plat.ko
+insmod ethercat/devices/dwc/ec_dwc_starfive.ko
 
-cd /root
