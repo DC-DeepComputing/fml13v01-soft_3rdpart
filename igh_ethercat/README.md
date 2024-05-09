@@ -1,14 +1,18 @@
 # IgH EtherCAT主站及应用的编译与使用
 
-基于 **rt-ethercat-release** 分支的 linux 内核。
+IgH EtherCAT 存在基于 linux-kernel v5.15.0 以及 v6.6 的两个版本。
+
+**rt-ethercat-release** 分支为基于 v5.15.0 linux 内核的 RT-Linux内核分支，并包含了针对 EtherCAT 的 GMAC 优化。
+
+**vf2-6.6.y-devel-rtlinux** 分支为基于 v6.6 linux 内核的 RT-Linux内核分支，与基于 v5.15.0 的内核分支相比，不包含针对 EtherCAT 的 GMAC 优化，相关部分被抽取出来并随着 EtherCAT 应用进行安装。
 
 ## 主目录结构说明
 
-igh_ethercat.sh igh_ethercat 主站安装、应用编译脚本，安装编译完成后会重新执行一次make打包镜像
+igh_ethercat.sh/igh_ethercat_v6.6.sh:   分别针对 v5.15.0 以及 v6.6内核的 igh_ethercat 主站安装、应用编译脚本。
 
-application     应用目录，包含伺服电机的 Profile velocity 模式应用源文件以及 Makefile，该应用会随着主站安装脚本执行同步编译并安装
+application:    应用目录，包含伺服电机的 Profile velocity 模式应用源文件以及 Makefile，该应用会随着主站安装脚本执行同步编译并安装
 
-README.md       本文件
+README.md   本文件
 
 ### 编译脚本
 
@@ -20,15 +24,28 @@ README.md       本文件
 ./igh_ethercat.sh
 ```
 
-或添加`img`参数同时编译sdcard.img：
+或：
+
+```bash
+./igh_ethercat_v6.6.sh
+```
+
+
+添加`img`参数可同时编译sdcard.img：
 
 ```bash
 ./igh_ethercat.sh img
 ```
 
+或：
+
+```bash
+./igh_ethercat_v6.6.sh img
+```
+
 #### 说明
 
-该脚本会检测SDK所使用的 linux 内核版本是否为 rt-ethercat-release 且是否已经编译过，若确认在该分支上且编译过，则会拉取指定版本的 IgH EtherCAT 主站代码，进行主站以及Demo程序的编译。
+该脚本会检测SDK所使用的 linux 内核版本是否为 对应分支(rt-ethercat-release 或 vf2-6.6.y-devel-rtlinux)且是否已经编译过，若确认在该分支上且编译过，则会拉取指定版本的 IgH EtherCAT 主站代码，进行主站以及Demo程序的编译。
 
 编译完成后，主站文件输出到 work/buildroot_initramfs_sysroot 中的对应路径下，主站模块编译并根据 work/linux/include/config/kernel.release 文件中的 kernel release 版本安装到 work/module_install_path 中的对应路径下。
 
@@ -56,6 +73,12 @@ eth1addr=6c:cf:39:00:38:2e
 
 ```bash
 # ./start_ethercat_master.sh 6c:cf:39:00:38:2e
+```
+
+或：
+
+```bash
+# ./start_ethercat_master_v6.6.sh 6c:cf:39:00:38:2e
 ```
 
 ### 应用
