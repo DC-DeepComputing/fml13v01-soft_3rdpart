@@ -35,6 +35,24 @@ linux_branch=$(git rev-parse --abbrev-ref HEAD)
 
 if [ "$linux_branch" == "vf2-6.6.y-devel-rtlinux" ]; then
   echo "Linux source code is on the branch: 'vf2-6.6.y-devel-rtlinux'."
+
+  # Iterate through patches starting with "0001*"in the linux_patches directory
+  echo "Applying patches."
+  for patch_file in ${current_path}/linux_patch/000*; do
+    if [[ "$patch_file" =~ /000[1-3]*-.*\.patch ]]; then
+      # Applying patches by using 'git am', and ignore the possible conflicts
+      git am --3way --ignore-whitespace "$patch_file" || {
+        # if 'git am' fails, output error messages and skip this patch.
+        echo "Failed to apply patch: $patch_file"
+        # clean 'git am' status.
+        git am --abort
+        # Skip the current loop iteration and continue with the next patch file.
+        continue
+      }
+      echo "Patch applied: $patch_file"
+    fi
+  done
+
   git pull
   cd ../
   make clean
@@ -129,15 +147,15 @@ fi
 # Iterate through patches starting with "0001*" to "0003*" in the ethercat_patches directory
 echo "Applying patches."
 for patch_file in ../ethercat_patch/000*; do
-  if [[ "$patch_file" =~ /000[1-3][0-9]*-.*\.patch ]]; then
+  if [[ "$patch_file" =~ /000[1-3]*-.*\.patch ]]; then
     # Applying patches by using 'git am', and ignore the possible conflicts
     git am --3way --ignore-whitespace "$patch_file" || {
       # if 'git am' fails, output error messages and skip this patch.
       echo "Failed to apply patch: $patch_file"
       # clean 'git am' status.
-      git am --abort 
+      git am --abort
       # Skip the current loop iteration and continue with the next patch file.
-      continue       
+      continue
     }
     echo "Patch applied: $patch_file"
   fi
@@ -176,6 +194,11 @@ echo ""
 echo "--------------------copy module files--------------------"
 
 ethercat_file_path=${current_path}/ethercat_files
+
+if [ -d "${ethercat_file_path}" ]; then
+  rm -r ${ethercat_file_path}
+fi
+
 mkdir ${ethercat_file_path}
 
 kernel_release=$(cat ${kernel_release_file})
@@ -188,7 +211,7 @@ if [ -d "${buildroot_initramfs_sysroot_path}/lib/modules/${kernel_release}" ]; t
   echo "modules has been copied to ${buildroot_initramfs_sysroot_path}/root"
 
   if [ $sdcard_img -eq 1 ]; then
-    echo "Copy application to '${buildroot_rootfs_path}/target/root'."
+    echo "Copy ethercat_files to '${buildroot_rootfs_path}/target/root'."
     cp -r ${ethercat_file_path}/lib/modules/${kernel_release}/ethercat ${buildroot_rootfs_path}/target/root
 
     if [ $? -eq 0 ]; then
