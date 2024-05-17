@@ -28,13 +28,27 @@ else
   echo "The argument is not 'img'"
 fi
 
-# --------------- Check if the kernel is on the corresponding branch. ---------------
-cd ../../linux
+# --------------- Check if the kernel is on the corresponding commit. ---------------
+if [[ -d "../../linux" ]]; then
+  echo "The 'linux' directory already exists..."
 
-linux_branch=$(git rev-parse --abbrev-ref HEAD)
+  cd ../../linux
 
-if [ "$linux_branch" == "vf2-6.6.y-devel-rtlinux" ]; then
-  echo "Linux source code is on the branch: 'vf2-6.6.y-devel-rtlinux'."
+  echo "Check linux commit id."
+
+  rt_linux_commit_id="157cc56732d6b7948ae59aa147a75ad0754c820d"
+  current_linux_commit_id=$(git rev-parse HEAD)
+
+  echo "$current_linux_commit_id"
+
+  if [[ $current_linux_commit_id != $rt_linux_commit_id ]]; then
+    echo "Linux kernel is not on the expected commit. Switching to $rt_linux_commit_id..."
+
+    git checkout "$rt_linux_commit_id" || {
+      echo "Failed to switch to commit $rt_linux_commit_id"
+      exit 1
+    }
+  fi
 
   # Iterate through patches starting with "0001*"in the linux_patches directory
   echo "Applying patches."
@@ -53,15 +67,10 @@ if [ "$linux_branch" == "vf2-6.6.y-devel-rtlinux" ]; then
     fi
   done
 
-  git pull
   cd ../
   make clean
   make -j$(nproc)
   cd ${current_path}
-else
-  echo "The Linux source code is not on the 'vf2-6.6.y-devel-rtlinux' branch. Exiting."
-  cd ${current_path}
-  exit 1
 fi
 
 if [ -d "${buildroot_initramfs_sysroot_path}" ] && [ -d "${linux_path}" ] && [ -d "${install_mod_path}" ]; then
@@ -82,61 +91,48 @@ repo_url="https://gitlab.com/etherlab.org/ethercat.git"
 # /home/atlas/visionfive/work/buildroot_initramfs/host/lib/gcc/riscv64-buildroot-linux-gnu/12.2.0/../../../../riscv64-buildroot-linux-gnu/bin/ld: failed to merge target specific data of file ../master/soe_errors.o
 # collect2: error: ld returned 1 exit status
 # branch_name="stable-1.5"
-branch_name="master"
-commit_id="4f529ade671ac60602a72168b368668f39c0855c"
-
-check_commit_id() {
-  local commit_id="$1"
-  local current_commit=$(git rev-parse HEAD)
-
-  if [ "$current_commit" != "$commit_id" ]; then
-    echo "Switching to the specified commit $commit_id..."
-    git checkout $commit_id
-    if [ $? -eq 0 ]; then
-      echo "Switched to the specified commit $commit_id successfully."
-    else
-      echo "Failed to switch to the specified commit $commit_id."
-    fi
-  else
-    echo "The current branch is already on the specified commit $commit_id."
-  fi
-}
+ethercat_branch_name="master"
+ethercat_commit_id="4f529ade671ac60602a72168b368668f39c0855c"
 
 if [ -d "ethercat" ]; then
   echo "The 'ethercat' directory already exists..."
 
   cd ethercat
 
-  current_branch=$(git symbolic-ref --short -q HEAD)
+  ethercat_current_branch=$(git symbolic-ref --short -q HEAD)
 
-  if [ "$current_branch" == "$branch_name" ]; then
-    echo "The 'ethercat' repository is already cloned and on the '$branch_name' branch."
-    check_commit_id "$commit_id"
+  if [ "$ethercat_current_branch" == "$ethercat_branch_name" ]; then
+    echo "The 'ethercat' repository is already cloned and on the '$ethercat_branch_name' branch."
+    if [[ $(git rev-parse HEAD) != $ethercat_commit_id ]]; then
+      git checkout $ethercat_commit_id
+    fi
   else
-    git checkout $branch_name
+    git checkout $ethercat_branch_name
     if [ $? -eq 0 ]; then
-      echo "Switched to the '$branch_name' branch successfully."
+      echo "Switched to the '$ethercat_branch_name' branch successfully."
       make clean
-      check_commit_id "$commit_id"
+      if [[ $(git rev-parse HEAD) != $ethercat_commit_id ]]; then
+        git checkout $ethercat_commit_id
+      fi
     else
-      echo "Failed to switch to the '$branch_name' branch."
+      echo "Failed to switch to the '$ethercat_branch_name' branch."
     fi
   fi
 else
-  echo "Cloning 'ethercat' repository and checking out the '$branch_name' branch..."
+  echo "Cloning 'ethercat' repository and checking out the '$ethercat_branch_name' branch..."
 
   git clone ${repo_url}
 
   if [ $? -eq 0 ]; then
     cd ethercat
 
-    git checkout $branch_name
-    check_commit_id "$commit_id"
+    git checkout $ethercat_branch_name
+    git checkout "$ethercat_commit_id"
 
     if [ $? -eq 0 ]; then
-      echo "Cloned 'ethercat' repository and checked out the '$branch_name' branch successfully."
+      echo "Cloned 'ethercat' repository and checked out the '$ethercat_branch_name' branch successfully."
     else
-      echo "Failed to checkout the '$branch_name' branch."
+      echo "Failed to checkout the '$ethercat_branch_name' branch."
     fi
   else
     echo "Failed to clone the 'ethercat' repository."
