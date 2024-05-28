@@ -329,6 +329,8 @@ static irqreturn_t jpu_irq_handler(int irq, void *dev_id)
             break;
         }
     }
+    if (i >= MAX_NUM_INSTANCE)
+        return IRQ_HANDLED;
 
     dev->interrupt_reason[i] = flag;
     s_interrupt_flag[i] = 1;
