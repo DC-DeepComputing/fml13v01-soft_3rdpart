@@ -1,0 +1,42 @@
+From 03d6dea0a4ec908b20ad7eff2ca4fd6a98472466 Mon Sep 17 00:00:00 2001
+From: Atlas Luo <atlas.luo@starfivetech.com>
+Date: Thu, 9 May 2024 09:40:24 +0800
+Subject: [PATCH] Avoid gmac driver autostart.
+
+---
+ arch/riscv/configs/starfive_visionfive2_defconfig | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/arch/riscv/configs/starfive_visionfive2_defconfig b/arch/riscv/configs/starfive_visionfive2_defconfig
+index af98e7962a74..b9d16046c5fd 100644
+--- a/arch/riscv/configs/starfive_visionfive2_defconfig
++++ b/arch/riscv/configs/starfive_visionfive2_defconfig
+@@ -44,7 +44,6 @@ CONFIG_MODULES=y
+ CONFIG_MODULE_UNLOAD=y
+ CONFIG_BINFMT_MISC=y
+ CONFIG_PAGE_REPORTING=y
+-CONFIG_CMA=y
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_IP_MULTICAST=y
+@@ -149,8 +148,7 @@ CONFIG_R8169=y
+ # CONFIG_NET_VENDOR_SOLARFLARE is not set
+ # CONFIG_NET_VENDOR_SOCIONEXT is not set
+ CONFIG_STMMAC_ETH=m
+-CONFIG_STMMAC_SELFTESTS=y
+-# CONFIG_DWMAC_GENERIC is not set
++# CONFIG_STMMAC_PLATFORM is not set
+ # CONFIG_NET_VENDOR_SYNOPSYS is not set
+ # CONFIG_NET_VENDOR_VIA is not set
+ # CONFIG_NET_VENDOR_WIZNET is not set
+@@ -409,7 +407,6 @@ CONFIG_CRYPTO_USER_API_RNG=y
+ CONFIG_CRYPTO_USER_API_AEAD=y
+ CONFIG_CRYPTO_DEV_VIRTIO=y
+ CONFIG_CRYPTO_DEV_JH7110=y
+-CONFIG_DMA_CMA=y
+ CONFIG_PRINTK_TIME=y
+ CONFIG_DEBUG_FS=y
+ CONFIG_SOFTLOCKUP_DETECTOR=y
+-- 
+2.34.1
+
