@@ -1,4 +1,5 @@
 // SPDX-License-Identifier:  LGPL-2.1 OR BSD-3-Clause
+#include <unistd.h>
 #include "product.h"
 #include "wave/common/common.h"
 #include "wave/common/common_vpuconfig.h"
@@ -32,6 +33,20 @@ static Uint32 presetGopSize[] = {
     2, /* Bitmain preset4 */
     2  /* Bitmain preset5 */
 };
+
+static unsigned int TryReadSuccess(Int32 coreIdx, Int32 stepUs, Int32 retry)
+{
+    Int32 i = 0;
+    while (i < retry) {
+        if (VpuReadReg(coreIdx, W4_RET_SUCCESS) == 0) {
+            i ++;
+            usleep(stepUs);
+        } else {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 static RetCode PrepareDecodingPicture(CodecInst* instance, Uint32 cmd)
 {
@@ -883,7 +898,7 @@ RetCode Wave4VpuEncSetup(CodecInst* instance)
     if (instance->loggingEnable)
         vdi_log(coreIdx, SET_PARAM, 0);
 
-    if (VpuReadReg(coreIdx, W4_RET_SUCCESS) == 0) {
+    if (TryReadSuccess(coreIdx, 10, 100) == 0) {
         if (VpuReadReg(coreIdx, W4_RET_FAIL_REASON) == WAVE4_SYSERR_WRITEPROTECTION) {
             return RETCODE_MEMORY_ACCESS_VIOLATION;
         }
@@ -940,7 +955,7 @@ RetCode Wave4VpuEncSetup(CodecInst* instance)
         if (instance->loggingEnable)
             vdi_log(coreIdx, SET_PARAM, 0);
 
-        if (VpuReadReg(coreIdx, W4_RET_SUCCESS) == 0) {
+        if (TryReadSuccess(coreIdx, 10, 100) == 0) {
             if (VpuReadReg(coreIdx, W4_RET_FAIL_REASON) == WAVE4_SYSERR_WRITEPROTECTION) {
                 return RETCODE_MEMORY_ACCESS_VIOLATION;
             }
@@ -1006,7 +1021,7 @@ RetCode Wave4VpuEncSetup(CodecInst* instance)
         if (instance->loggingEnable)
             vdi_log(coreIdx, SET_PARAM, 0);
 
-        if (VpuReadReg(coreIdx, W4_RET_SUCCESS) == 0) {
+        if (TryReadSuccess(coreIdx, 10, 100) == 0) {
             if (VpuReadReg(coreIdx, W4_RET_FAIL_REASON) == WAVE4_SYSERR_WRITEPROTECTION) {
                 return RETCODE_MEMORY_ACCESS_VIOLATION;
             }
@@ -1248,7 +1263,7 @@ RetCode Wave4VpuEncGetResult(CodecInst* instance, EncOutputInfo* result)
     if (instance->loggingEnable)
         vdi_log(coreIdx, ENC_PIC, 0);
 
-    encodingSuccess = VpuReadReg(coreIdx, W4_RET_SUCCESS);
+    encodingSuccess = TryReadSuccess(coreIdx, 100, 100);
     if (encodingSuccess == FALSE) {
         errorReason = VpuReadReg(coreIdx, W4_RET_FAIL_REASON);
         if (errorReason == WAVE4_SYSERR_WRITEPROTECTION) {
@@ -1383,6 +1398,15 @@ RetCode Wave4VpuEncGetHeader(EncHandle instance, EncHeaderParam* encHeaderParam)
     if (instance->loggingEnable)
         vdi_log(coreIdx, ENC_PIC, 0);
 
+    regVal = TryReadSuccess(coreIdx, 10, 100);
+    if (regVal == 0) {
+        encHeaderParam->failReasonCode = VpuReadReg(coreIdx, W4_RET_FAIL_REASON);
+        ret = RETCODE_FAILURE;
+    }
+    else {
+        ret = RETCODE_SUCCESS;
+    }
+
     rdPtr = VpuReadReg(coreIdx, pEncInfo->streamRdPtrRegAddr);
     wrPtr = VpuReadReg(coreIdx, pEncInfo->streamWrPtrRegAddr);    
     encHeaderParam->buf  = rdPtr;
@@ -1391,14 +1415,6 @@ RetCode Wave4VpuEncGetHeader(EncHandle instance, EncHeaderParam* encHeaderParam)
     pEncInfo->streamWrPtr = wrPtr;
     pEncInfo->streamRdPtr = rdPtr;
 
-    regVal = VpuReadReg(coreIdx, W4_RET_SUCCESS);
-    if (regVal == 0) {
-        encHeaderParam->failReasonCode = VpuReadReg(coreIdx, W4_RET_FAIL_REASON);
-        ret = RETCODE_FAILURE;
-    }
-    else {
-        ret = RETCODE_SUCCESS;
-    }
     LeaveLock(coreIdx);
 
     return ret;
