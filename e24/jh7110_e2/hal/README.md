@@ -1,0 +1,1 @@
+# this project implement soc independent ip drivers for baremetal firmwares.
